@@ -51,6 +51,9 @@
           <a href="#skills">Skills</a>
           <a href="#projetos">Projetos</a>
           <a href="#contato">Contato</a>
+          <button class="nav-button" type="button" id="dashboardTrigger" data-open-dashboard>
+            Dash
+          </button>
         </nav>
       </div>
     </header>
@@ -58,8 +61,8 @@
     <main class="site-shell">
       <section class="hero" id="home">
         <div class="hero-copy" data-reveal="up">
-          <h1>Pedro<br />Emmanuel</h1>
-          <p class="hero-role">Desenvolvedor back end</p>
+          <h1 data-field="heroTitle">Pedro<br />Emmanuel</h1>
+          <p class="hero-role" data-field="heroRole">Desenvolvedor back end</p>
 
           <div class="hero-socials">
             <a href="https://linkedin.com/in/pedroemn" target="_blank" rel="noreferrer">LinkedIn</a>
@@ -105,8 +108,8 @@
         <aside class="hero-side" data-reveal="left">
           <div class="side-card">
             <span class="side-label">Atualmente</span>
-            <strong>Estudante de Analise e Desenvolvimento de Sistemas</strong>
-            <p>Atualmente me encontro no 1° periodo , focando por fora no desenvolvimento backend.</p>
+            <strong data-field="heroStatusTitle">Estudante de Analise e Desenvolvimento de Sistemas</strong>
+            <p data-field="heroStatusText">Atualmente me encontro no 1° periodo , focando por fora no desenvolvimento backend.</p>
           </div>
 
           <div class="side-card side-card-cta">
@@ -119,7 +122,7 @@
       <section class="section" id="sobre">
         <div class="section-heading" data-reveal="up">
           <span class="eyebrow">Sobre mim</span>
-          <h2> Venha me conhecer um pouco mais.</h2>
+          <h2 data-field="aboutHeading">Venha me conhecer um pouco mais.</h2>
         </div>
 
         <div class="about-grid">
@@ -168,7 +171,7 @@
       <section class="section" id="skills">
         <div class="section-heading" data-reveal="up">
           <span class="eyebrow">Skills</span>
-          <h2>Seja muito bem-vindo ao  meu mundo na programação</h2>
+          <h2 data-field="skillsHeading">Seja muito bem-vindo ao meu mundo na programação</h2>
         </div>
 
         <div class="skills-cloud" data-reveal="left">
@@ -214,30 +217,16 @@
       <section class="section" id="projetos">
         <div class="section-heading" data-reveal="up">
           <span class="eyebrow">Projetos</span>
-          <h2>Aqui você encontra um pouco do meu trabalho , espero que goste.</h2>
+          <h2 data-field="projectsHeading">Aqui você encontra um pouco do meu trabalho , espero que goste.</h2>
         </div>
 
-        <div class="projects-grid">
-          <article class="project-card project-card-featured" data-reveal="up">
-            <span class="project-index">01</span>
-            <span class="project-label">Projeto principal</span>
-            <h3>Projeto Concessionaria</h3>
-            <p>https://github.com/pedroemn/Concessionaria.git</p>
-          </article>
-
-          <article class="project-card" data-reveal="up">
-            <span class="project-index">02</span>
-            <span class="project-label">Projeto tecnico</span>
-            <h3>Portfólio Web</h3>
-            <p>https://github.com/pedroemn/emmanuel_portfolio.git</p>
-          </article>
-        </div>
+        <div class="projects-grid" id="projectsGrid"></div>
       </section>
 
       <section class="section" id="contato">
         <div class="section-heading" data-reveal="up">
           <span class="eyebrow">Contato</span>
-          <h2>Aqui podemos ter um contato direto , vamos realizar esse network.</h2>
+          <h2 data-field="contactHeading">Aqui podemos ter um contato direto , vamos realizar esse network.</h2>
         </div>
 
         <div class="contact-grid">
@@ -257,6 +246,98 @@
       <p>&copy; <span id="year"></span> pomansir@gmail.com</p>
     </footer>
 
+    <div class="dashboard-overlay" id="dashboardOverlay" hidden>
+      <div class="dashboard-panel" role="dialog" aria-modal="true" aria-labelledby="dashboardTitle">
+        <div class="dashboard-panel-header">
+          <div>
+            <span class="eyebrow">Dashboard pessoal</span>
+            <h2 id="dashboardTitle">Painel de edição</h2>
+          </div>
+          <button class="dashboard-close" type="button" id="dashboardClose" aria-label="Fechar dashboard">×</button>
+        </div>
+
+        <div class="dashboard-lock-screen" id="dashboardLockScreen">
+          <div class="dashboard-lock-card">
+            <div class="dashboard-stage-pill">Etapa 1 · Acesso</div>
+            <span class="eyebrow">Acesso restrito</span>
+            <h3>Entre com a senha numérica</h3>
+            <p>Use apenas números. Você tem 3 tentativas por hora.</p>
+            <input id="dashboardPassword" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="Digite a senha" />
+            <button class="button button-primary" type="button" id="dashboardUnlockButton">Entrar no painel</button>
+            <p class="dashboard-hint" id="dashboardAttemptsText">Tentativas: 3/3</p>
+            <p class="dashboard-message" id="dashboardMessage"></p>
+          </div>
+        </div>
+
+        <div class="dashboard-content" id="dashboardContent" hidden>
+          <div class="dashboard-section">
+            <h3>Conteúdo principal</h3>
+            <label class="dashboard-field">
+              <span>Título principal</span>
+              <textarea id="heroTitleInput" rows="3"></textarea>
+            </label>
+            <label class="dashboard-field">
+              <span>Função</span>
+              <input id="heroRoleInput" type="text" />
+            </label>
+            <label class="dashboard-field">
+              <span>Título do card lateral</span>
+              <input id="heroStatusTitleInput" type="text" />
+            </label>
+            <label class="dashboard-field">
+              <span>Texto do card lateral</span>
+              <textarea id="heroStatusTextInput" rows="3"></textarea>
+            </label>
+          </div>
+
+          <div class="dashboard-section">
+            <h3>Textos do sobre</h3>
+            <label class="dashboard-field">
+              <span>Heading</span>
+              <input id="aboutHeadingInput" type="text" />
+            </label>
+            <label class="dashboard-field">
+              <span>Parágrafo 1</span>
+              <textarea id="aboutParagraph1Input" rows="4"></textarea>
+            </label>
+            <label class="dashboard-field">
+              <span>Parágrafo 2</span>
+              <textarea id="aboutParagraph2Input" rows="4"></textarea>
+            </label>
+          </div>
+
+          <div class="dashboard-section">
+            <h3>Outros textos</h3>
+            <label class="dashboard-field">
+              <span>Heading Skills</span>
+              <input id="skillsHeadingInput" type="text" />
+            </label>
+            <label class="dashboard-field">
+              <span>Heading Projetos</span>
+              <input id="projectsHeadingInput" type="text" />
+            </label>
+            <label class="dashboard-field">
+              <span>Heading Contato</span>
+              <input id="contactHeadingInput" type="text" />
+            </label>
+          </div>
+
+          <div class="dashboard-section">
+            <div class="dashboard-section-head">
+              <h3>Projetos</h3>
+              <button class="dashboard-add-button" type="button" id="addProjectButton">Adicionar projeto</button>
+            </div>
+            <div id="projectEditorList" class="project-editor-list"></div>
+          </div>
+
+          <div class="dashboard-actions">
+            <button class="button button-primary" type="button" id="saveDashboardButton">Salvar alterações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

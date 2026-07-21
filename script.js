@@ -1,41 +1,9 @@
 "use strict";
 
-const BRAND_STYLE_CLASSES = Object.freeze([
-  "brand-style-newsprint",
-  "brand-style-cutout-dark",
-  "brand-style-highlight",
-  "brand-style-glitch",
-  "brand-style-marker",
-  "brand-style-outline",
-  "brand-style-sticker",
-  "brand-style-mono"
-]);
-
-const BRAND_ANIMATION_CONFIG = Object.freeze({
-  minDelayMs: 180,
-  maxDelayMs: 640,
-  initialDelayMinMs: 40,
-  initialDelayMaxMs: 260,
-  reducedMotionMinDelayMs: 1100,
-  reducedMotionMaxDelayMs: 1800,
-  emphasisClassName: "brand-letter-shift",
-  emphasisDurationMs: 300
-});
-
 class BrandAnimator {
-  constructor(root, options = {}) {
+  constructor(root) {
     this.root = root;
     this.letters = Array.from(root.querySelectorAll(".brand-word > span"));
-    this.styleClasses = options.styleClasses ?? BRAND_STYLE_CLASSES;
-    this.config = {
-      ...BRAND_ANIMATION_CONFIG,
-      ...options.config
-    };
-    this.reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    this.timers = new Map();
-
-    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-    this.handleMotionPreferenceChange = this.handleMotionPreferenceChange.bind(this);
   }
 
   init() {
@@ -43,151 +11,36 @@ class BrandAnimator {
       return;
     }
 
-    this.applyInitialState();
-    document.addEventListener("visibilitychange", this.handleVisibilityChange);
-    this.bindMotionPreferenceListener();
-    this.start();
-  }
-
-  applyInitialState() {
     this.letters.forEach((letter) => {
       letter.dataset.letter = letter.textContent ?? "";
-      this.randomizeLetterOffset(letter);
-      const styleName = this.pickRandomStyle();
-      this.applyStyle(letter, styleName);
-    });
-  }
-
-  start() {
-    this.stop();
-
-    this.letters.forEach((letter) => {
-      const initialDelay = this.randomBetween(
-        this.config.initialDelayMinMs,
-        this.config.initialDelayMaxMs
+      letter.classList.remove(
+        "brand-style-newsprint",
+        "brand-style-cutout-dark",
+        "brand-style-highlight",
+        "brand-style-glitch",
+        "brand-style-marker",
+        "brand-style-outline",
+        "brand-style-sticker",
+        "brand-style-mono",
+        "brand-letter-shift"
       );
-
-      this.scheduleNextTick(letter, initialDelay);
     });
-  }
-
-  stop() {
-    this.timers.forEach((timerId) => window.clearTimeout(timerId));
-    this.timers.clear();
   }
 
   destroy() {
-    this.stop();
-    document.removeEventListener("visibilitychange", this.handleVisibilityChange);
-    this.unbindMotionPreferenceListener();
-  }
-
-  scheduleNextTick(letter, delayMs) {
-    const timerId = window.setTimeout(() => {
-      this.updateLetter(letter);
-
-      if (!document.hidden) {
-        const [minDelay, maxDelay] = this.getDelayWindow();
-        const nextDelay = this.randomBetween(minDelay, maxDelay);
-
-        this.scheduleNextTick(letter, nextDelay);
-      }
-    }, delayMs);
-
-    this.timers.set(letter, timerId);
-  }
-
-  updateLetter(letter) {
-    const currentStyle = letter.dataset.styleName ?? "";
-    const nextStyle = this.pickRandomStyle(currentStyle);
-    this.randomizeLetterOffset(letter);
-    this.applyStyle(letter, nextStyle);
-  }
-
-  applyStyle(letter, styleName) {
-    letter.classList.remove(...this.styleClasses);
-    letter.classList.add(styleName);
-    letter.dataset.styleName = styleName;
-    this.flashLetter(letter);
-  }
-
-  flashLetter(letter) {
-    const { emphasisClassName, emphasisDurationMs } = this.config;
-
-    letter.classList.remove(emphasisClassName);
-    void letter.offsetWidth;
-    letter.classList.add(emphasisClassName);
-
-    window.setTimeout(() => {
-      letter.classList.remove(emphasisClassName);
-    }, emphasisDurationMs);
-  }
-
-  pickRandomStyle(excludedStyle = "") {
-    const availableStyles = this.styleClasses.filter((styleName) => styleName !== excludedStyle);
-
-    if (!availableStyles.length) {
-      return excludedStyle;
-    }
-
-    const randomIndex = Math.floor(Math.random() * availableStyles.length);
-    return availableStyles[randomIndex];
-  }
-
-  randomBetween(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  }
-
-  getDelayWindow() {
-    if (this.reducedMotionQuery.matches) {
-      return [
-        this.config.reducedMotionMinDelayMs,
-        this.config.reducedMotionMaxDelayMs
-      ];
-    }
-
-    return [this.config.minDelayMs, this.config.maxDelayMs];
-  }
-
-  randomizeLetterOffset(letter) {
-    const tilt = this.randomBetween(-8, 8);
-    const shiftY = this.randomBetween(-2, 2);
-    const shiftX = this.randomBetween(-1, 1);
-
-    letter.style.setProperty("--brand-tilt", `${tilt}deg`);
-    letter.style.setProperty("--brand-shift-y", `${shiftY}px`);
-    letter.style.setProperty("--brand-shift-x", `${shiftX}px`);
-  }
-
-  handleVisibilityChange() {
-    if (document.hidden) {
-      this.stop();
-      return;
-    }
-
-    this.start();
-  }
-
-  handleMotionPreferenceChange() {
-    this.start();
-  }
-
-  bindMotionPreferenceListener() {
-    if (typeof this.reducedMotionQuery.addEventListener === "function") {
-      this.reducedMotionQuery.addEventListener("change", this.handleMotionPreferenceChange);
-      return;
-    }
-
-    this.reducedMotionQuery.addListener(this.handleMotionPreferenceChange);
-  }
-
-  unbindMotionPreferenceListener() {
-    if (typeof this.reducedMotionQuery.removeEventListener === "function") {
-      this.reducedMotionQuery.removeEventListener("change", this.handleMotionPreferenceChange);
-      return;
-    }
-
-    this.reducedMotionQuery.removeListener(this.handleMotionPreferenceChange);
+    this.letters.forEach((letter) => {
+      letter.classList.remove(
+        "brand-style-newsprint",
+        "brand-style-cutout-dark",
+        "brand-style-highlight",
+        "brand-style-glitch",
+        "brand-style-marker",
+        "brand-style-outline",
+        "brand-style-sticker",
+        "brand-style-mono",
+        "brand-letter-shift"
+      );
+    });
   }
 }
 
@@ -347,6 +200,7 @@ function syncCurrentYear() {
 class PortfolioApp {
   constructor() {
     this.cleanups = [];
+    this.dashboardState = this.loadDashboardState();
   }
 
   init() {
@@ -357,6 +211,8 @@ class PortfolioApp {
     this.initRevealObserver();
     this.initActiveNavigation();
     this.initScrollProgress();
+    this.initDashboard();
+    this.applyDashboardState();
 
     window.addEventListener(
       "beforeunload",
@@ -407,6 +263,331 @@ class PortfolioApp {
     const scrollProgress = new ScrollProgressController();
     scrollProgress.init();
     this.cleanups.push(() => scrollProgress.destroy());
+  }
+
+  initDashboard() {
+    const trigger = document.querySelector("[data-open-dashboard]");
+    const overlay = document.querySelector("#dashboardOverlay");
+    const closeButton = document.querySelector("#dashboardClose");
+    const unlockButton = document.querySelector("#dashboardUnlockButton");
+    const saveButton = document.querySelector("#saveDashboardButton");
+    const addProjectButton = document.querySelector("#addProjectButton");
+    const passwordInput = document.querySelector("#dashboardPassword");
+    const lockScreen = document.querySelector("#dashboardLockScreen");
+    const content = document.querySelector("#dashboardContent");
+    const attemptsText = document.querySelector("#dashboardAttemptsText");
+    const message = document.querySelector("#dashboardMessage");
+    const projectEditorList = document.querySelector("#projectEditorList");
+
+    if (!trigger || !overlay || !closeButton || !unlockButton || !saveButton || !addProjectButton || !passwordInput || !lockScreen || !content || !attemptsText || !message || !projectEditorList) {
+      return;
+    }
+
+    const state = this.dashboardState;
+    const password = String((window.__PORTFOLIO_CONFIG__?.dashboardPassword || "123456")).trim();
+    const attemptsKey = "dashboard-attempts";
+    const lockUntilKey = "dashboard-lock-until";
+
+    const getAttempts = () => Number(window.localStorage.getItem(attemptsKey) || "0");
+    const setAttempts = (value) => window.localStorage.setItem(attemptsKey, String(value));
+    const getLockUntil = () => Number(window.localStorage.getItem(lockUntilKey) || "0");
+    const setLockUntil = (value) => window.localStorage.setItem(lockUntilKey, String(value));
+
+    const updateAttemptsText = () => {
+      const remaining = Math.max(0, 3 - getAttempts());
+      attemptsText.textContent = `Tentativas: ${remaining}/3`;
+    };
+
+    const showMessage = (text, type = "") => {
+      message.textContent = text;
+      message.className = `dashboard-message${type ? ` is-${type}` : ""}`;
+    };
+
+    const openDashboard = () => {
+      overlay.hidden = false;
+      document.body.classList.add("is-locked");
+      lockScreen.hidden = false;
+      content.hidden = true;
+      passwordInput.value = "";
+      const lockUntil = getLockUntil();
+      if (lockUntil && Date.now() < lockUntil) {
+        showMessage(`Acesso bloqueado por ${Math.ceil((lockUntil - Date.now()) / 60000)} minuto(s).`, "error");
+        return;
+      }
+
+      if (lockUntil && Date.now() >= lockUntil) {
+        setLockUntil(0);
+        setAttempts(0);
+      }
+
+      updateAttemptsText();
+      showMessage("");
+      passwordInput.value = "";
+    };
+
+    const closeDashboard = () => {
+      overlay.hidden = true;
+      document.body.classList.remove("is-locked");
+      lockScreen.hidden = false;
+      content.hidden = true;
+      passwordInput.value = "";
+      showMessage("");
+    };
+
+    const resetDashboardView = () => {
+      lockScreen.hidden = false;
+      content.hidden = true;
+      passwordInput.value = "";
+      showMessage("");
+    };
+
+    const populateForm = () => {
+      document.querySelector("[data-field='heroTitle']").innerHTML = state.heroTitle.replace(/\n/g, "<br />");
+      document.querySelector("[data-field='heroRole']").textContent = state.heroRole;
+      document.querySelector("[data-field='heroStatusTitle']").textContent = state.heroStatusTitle;
+      document.querySelector("[data-field='heroStatusText']").textContent = state.heroStatusText;
+      document.querySelector("[data-field='aboutHeading']").textContent = state.aboutHeading;
+      document.querySelector("[data-field='aboutParagraph1']").textContent = state.aboutParagraph1;
+      document.querySelector("[data-field='aboutParagraph2']").textContent = state.aboutParagraph2;
+      document.querySelector("[data-field='skillsHeading']").textContent = state.skillsHeading;
+      document.querySelector("[data-field='projectsHeading']").textContent = state.projectsHeading;
+      document.querySelector("[data-field='contactHeading']").textContent = state.contactHeading;
+      this.renderProjects();
+    };
+
+    const applyFormValues = () => {
+      document.querySelector("#heroTitleInput").value = state.heroTitle;
+      document.querySelector("#heroRoleInput").value = state.heroRole;
+      document.querySelector("#heroStatusTitleInput").value = state.heroStatusTitle;
+      document.querySelector("#heroStatusTextInput").value = state.heroStatusText;
+      document.querySelector("#aboutHeadingInput").value = state.aboutHeading;
+      document.querySelector("#aboutParagraph1Input").value = state.aboutParagraph1;
+      document.querySelector("#aboutParagraph2Input").value = state.aboutParagraph2;
+      document.querySelector("#skillsHeadingInput").value = state.skillsHeading;
+      document.querySelector("#projectsHeadingInput").value = state.projectsHeading;
+      document.querySelector("#contactHeadingInput").value = state.contactHeading;
+      this.renderProjects();
+    };
+
+    this.renderProjects = () => {
+      projectEditorList.innerHTML = "";
+      state.projects.forEach((project, index) => {
+        const item = document.createElement("article");
+        item.className = "project-editor-item";
+        item.innerHTML = `
+          <div class="project-editor-item-top">
+            <strong>${project.title}</strong>
+            <button type="button" data-remove-project="${index}">Remover</button>
+          </div>
+          <label class="dashboard-field">
+            <span>Título</span>
+            <input type="text" data-project-title="${index}" value="${project.title}" />
+          </label>
+          <label class="dashboard-field">
+            <span>Descrição</span>
+            <textarea rows="3" data-project-description="${index}">${project.description}</textarea>
+          </label>
+          <label class="dashboard-field">
+            <span>Link</span>
+            <input type="text" data-project-link="${index}" value="${project.link}" />
+          </label>
+        `;
+        projectEditorList.appendChild(item);
+      });
+    };
+
+    this.renderProjects();
+
+    const handleUnlock = () => {
+      if (passwordInput.value.trim() !== password) {
+        const attempts = getAttempts() + 1;
+        setAttempts(attempts);
+        updateAttemptsText();
+        if (attempts >= 3) {
+          const lockUntil = Date.now() + 60 * 60 * 1000;
+          setLockUntil(lockUntil);
+          showMessage("Limite de tentativas atingido. Tente novamente em 1 hora.", "error");
+          passwordInput.value = "";
+          return;
+        }
+        showMessage("Senha incorreta. Tente novamente.", "error");
+        return;
+      }
+
+      setAttempts(0);
+      setLockUntil(0);
+      lockScreen.hidden = true;
+      content.hidden = false;
+      showMessage("Acesso liberado.", "success");
+      applyFormValues();
+    };
+
+    const handleSave = () => {
+      state.heroTitle = document.querySelector("#heroTitleInput").value;
+      state.heroRole = document.querySelector("#heroRoleInput").value;
+      state.heroStatusTitle = document.querySelector("#heroStatusTitleInput").value;
+      state.heroStatusText = document.querySelector("#heroStatusTextInput").value;
+      state.aboutHeading = document.querySelector("#aboutHeadingInput").value;
+      state.aboutParagraph1 = document.querySelector("#aboutParagraph1Input").value;
+      state.aboutParagraph2 = document.querySelector("#aboutParagraph2Input").value;
+      state.skillsHeading = document.querySelector("#skillsHeadingInput").value;
+      state.projectsHeading = document.querySelector("#projectsHeadingInput").value;
+      state.contactHeading = document.querySelector("#contactHeadingInput").value;
+
+      this.saveDashboardState();
+      populateForm();
+      closeDashboard();
+    };
+
+    const addProject = () => {
+      state.projects.push({ title: "Novo projeto", description: "Descreva seu projeto", link: "https://example.com" });
+      this.renderProjects();
+      this.saveDashboardState();
+      this.applyDashboardState();
+    };
+
+    trigger.addEventListener("click", () => {
+      openDashboard();
+      resetDashboardView();
+    });
+    closeButton.addEventListener("click", closeDashboard);
+    unlockButton.addEventListener("click", handleUnlock);
+    saveButton.addEventListener("click", handleSave);
+    addProjectButton.addEventListener("click", addProject);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) {
+        closeDashboard();
+      }
+    });
+
+    passwordInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        handleUnlock();
+      }
+    });
+
+    projectEditorList.addEventListener("input", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+        return;
+      }
+
+      const index = Number(target.dataset.projectTitle || target.dataset.projectDescription || target.dataset.projectLink);
+      if (Number.isNaN(index)) {
+        return;
+      }
+
+      const project = state.projects[index];
+      if (!project) {
+        return;
+      }
+
+      if (target.dataset.projectTitle !== undefined) {
+        project.title = target.value;
+      } else if (target.dataset.projectDescription !== undefined) {
+        project.description = target.value;
+      } else if (target.dataset.projectLink !== undefined) {
+        project.link = target.value;
+      }
+      this.saveDashboardState();
+      populateForm();
+    });
+
+    projectEditorList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-remove-project]");
+      if (!button) {
+        return;
+      }
+      const index = Number(button.dataset.removeProject);
+      state.projects.splice(index, 1);
+      this.saveDashboardState();
+      this.renderProjects();
+      this.applyDashboardState();
+    });
+
+    updateAttemptsText();
+    if (getLockUntil() && Date.now() < getLockUntil()) {
+      showMessage(`Acesso bloqueado por ${Math.ceil((getLockUntil() - Date.now()) / 60000)} minuto(s).`, "error");
+    }
+  }
+
+  applyDashboardState() {
+    const heroTitle = document.querySelector("[data-field='heroTitle']");
+    const heroRole = document.querySelector("[data-field='heroRole']");
+    const heroStatusTitle = document.querySelector("[data-field='heroStatusTitle']");
+    const heroStatusText = document.querySelector("[data-field='heroStatusText']");
+    const aboutHeading = document.querySelector("[data-field='aboutHeading']");
+    const aboutParagraph1 = document.querySelector("[data-field='aboutParagraph1']");
+    const aboutParagraph2 = document.querySelector("[data-field='aboutParagraph2']");
+    const skillsHeading = document.querySelector("[data-field='skillsHeading']");
+    const projectsHeading = document.querySelector("[data-field='projectsHeading']");
+    const contactHeading = document.querySelector("[data-field='contactHeading']");
+    const projectsGrid = document.querySelector("#projectsGrid");
+
+    if (!heroTitle || !heroRole || !heroStatusTitle || !heroStatusText || !aboutHeading || !aboutParagraph1 || !aboutParagraph2 || !skillsHeading || !projectsHeading || !contactHeading || !projectsGrid) {
+      return;
+    }
+
+    heroTitle.innerHTML = this.dashboardState.heroTitle.replace(/\n/g, "<br />");
+    heroRole.textContent = this.dashboardState.heroRole;
+    heroStatusTitle.textContent = this.dashboardState.heroStatusTitle;
+    heroStatusText.textContent = this.dashboardState.heroStatusText;
+    aboutHeading.textContent = this.dashboardState.aboutHeading;
+    aboutParagraph1.textContent = this.dashboardState.aboutParagraph1;
+    aboutParagraph2.textContent = this.dashboardState.aboutParagraph2;
+    skillsHeading.textContent = this.dashboardState.skillsHeading;
+    projectsHeading.textContent = this.dashboardState.projectsHeading;
+    contactHeading.textContent = this.dashboardState.contactHeading;
+
+    projectsGrid.innerHTML = this.dashboardState.projects.map((project, index) => `
+      <article class="project-card${index === 0 ? " project-card-featured" : ""}" data-reveal="up">
+        <span class="project-index">0${index + 1}</span>
+        <span class="project-label">${index === 0 ? "Projeto principal" : "Projeto tecnico"}</span>
+        <h3>${project.title}</h3>
+        <p>${project.description}</p>
+        <p><a href="${project.link}" target="_blank" rel="noreferrer">${project.link}</a></p>
+      </article>
+    `).join("");
+  }
+
+  loadDashboardState() {
+    const saved = window.localStorage.getItem("portfolio-dashboard-state");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.warn("Falha ao carregar o dashboard", error);
+      }
+    }
+
+    return {
+      heroTitle: "Pedro\nEmmanuel",
+      heroRole: "Desenvolvedor back end",
+      heroStatusTitle: "Estudante de Analise e Desenvolvimento de Sistemas",
+      heroStatusText: "Atualmente me encontro no 1° periodo , focando por fora no desenvolvimento backend.",
+      aboutHeading: "Venha me conhecer um pouco mais.",
+      aboutParagraph1: "Me chamo Pedro Emmanuel, tenho 18 anos e seja bem-vindo ao meu portfolio. Há 1 ano tive meu primeiro contato com a programacao e desde entao vivo em constante pratica e estudo buscando a cada dia aprender mais.",
+      aboutParagraph2: "Curso Analise e Desenvolvimento de Sistemas na Universidade Tiradentes e me encontro no 1° periodo, onde estou me aprofundando cada vez mais no universo do desenvolvimento de software.",
+      skillsHeading: "Seja muito bem-vindo ao meu mundo na programação",
+      projectsHeading: "Aqui você encontra um pouco do meu trabalho , espero que goste.",
+      contactHeading: "Aqui podemos ter um contato direto , vamos realizar esse network.",
+      projects: [
+        {
+          title: "Projeto Concessionaria",
+          description: "https://github.com/pedroemn/Concessionaria.git",
+          link: "https://github.com/pedroemn/Concessionaria.git"
+        },
+        {
+          title: "Portfólio Web",
+          description: "https://github.com/pedroemn/emmanuel_portfolio.git",
+          link: "https://github.com/pedroemn/emmanuel_portfolio.git"
+        }
+      ]
+    };
+  }
+
+  saveDashboardState() {
+    window.localStorage.setItem("portfolio-dashboard-state", JSON.stringify(this.dashboardState));
   }
 
   destroy() {

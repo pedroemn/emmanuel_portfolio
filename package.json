@@ -1,0 +1,9 @@
+{
+  "name": "emmanuel-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfolio pessoal com dashboard leve e responsivo",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
