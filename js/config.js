@@ -1,3 +1,3 @@
 window.__PORTFOLIO_CONFIG__ = {
-  dashboardPassword: "123456"
+  dashboardPassword: "12121407"
 };
