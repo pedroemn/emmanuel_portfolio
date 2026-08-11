@@ -49,7 +49,7 @@ const server = http.createServer((req, res) => {
   const urlPath = req.url === '/' ? '/index.html' : req.url;
 
   if (urlPath === '/config.js') {
-    const password = process.env.DASHBOARD_PASSWORD || '123456';
+    const password = process.env.DASHBOARD_PASSWORD;
     const configBody = `window.__PORTFOLIO_CONFIG__ = { dashboardPassword: ${JSON.stringify(password)} };`;
     res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
     res.end(configBody);

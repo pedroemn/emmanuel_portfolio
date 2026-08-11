@@ -294,8 +294,8 @@ class PortfolioApp {
     const setLockUntil = (value) => window.localStorage.setItem(lockUntilKey, String(value));
 
     const updateAttemptsText = () => {
-      const remaining = Math.max(0, 3 - getAttempts());
-      attemptsText.textContent = `Tentativas: ${remaining}/3`;
+      const remaining = Math.max(0, 5 - getAttempts());
+      attemptsText.textContent = `Tentativas: ${remaining}/5`;
     };
 
     const showMessage = (text, type = "") => {
@@ -403,7 +403,7 @@ class PortfolioApp {
         const attempts = getAttempts() + 1;
         setAttempts(attempts);
         updateAttemptsText();
-        if (attempts >= 3) {
+        if (attempts >= 5) {
           const lockUntil = Date.now() + 60 * 60 * 1000;
           setLockUntil(lockUntil);
           showMessage("Limite de tentativas atingido. Tente novamente em 1 hora.", "error");
